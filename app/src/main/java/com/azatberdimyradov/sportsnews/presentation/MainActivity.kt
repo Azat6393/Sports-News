@@ -1,4 +1,4 @@
-package com.azatberdimyradov.sportsnews
+package com.azatberdimyradov.sportsnews.presentation
 
 import android.Manifest.permission.*
 import android.annotation.SuppressLint
@@ -19,11 +19,15 @@ import android.webkit.*
 import androidx.core.app.ActivityCompat
 import com.appsflyer.AppsFlyerConversionListener
 import com.appsflyer.AppsFlyerLib
+import com.azatberdimyradov.sportsnews.Constants
 import com.azatberdimyradov.sportsnews.databinding.ActivityMainBinding
 import com.onesignal.OneSignal
+import dagger.hilt.android.AndroidEntryPoint
 import java.net.URLEncoder
 import java.util.*
 
+
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var _binding: ActivityMainBinding
@@ -103,7 +107,11 @@ class MainActivity : AppCompatActivity() {
                                 println("OK")
                                 view?.visibility = View.VISIBLE
                             }
+                        } else {
+                            println("Canceledd")
                         }
+                    }else{
+                        println("canled")
                     }
                 }
 
