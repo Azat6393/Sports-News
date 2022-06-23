@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Sports News</string>
+    <string name="checking_redirect">Checking redirect...</string>
+    <string name="app_content">App content</string>
+</resources>
