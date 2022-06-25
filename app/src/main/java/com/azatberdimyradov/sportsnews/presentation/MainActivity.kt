@@ -1,6 +1,7 @@
 package com.azatberdimyradov.sportsnews.presentation
 
-import android.Manifest.permission.*
+import android.Manifest.permission.CAMERA
+import android.Manifest.permission.RECORD_AUDIO
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -8,7 +9,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.provider.Settings.Global.AIRPLANE_MODE_ON
@@ -16,11 +16,13 @@ import android.telephony.TelephonyManager
 import android.view.KeyEvent
 import android.view.View
 import android.webkit.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.appsflyer.AppsFlyerConversionListener
 import com.appsflyer.AppsFlyerLib
 import com.azatberdimyradov.sportsnews.Constants
-import com.azatberdimyradov.sportsnews.databinding.ActivityMainBinding
+import com.azatberdimyradov.sportsnews.presentation.news.NewsActivity
+import com.berdimyradov.sportsnews.databinding.ActivityMainBinding
 import com.onesignal.OneSignal
 import dagger.hilt.android.AndroidEntryPoint
 import java.net.URLEncoder
@@ -31,6 +33,9 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
 
     private lateinit var _binding: ActivityMainBinding
+
+    private val urlForWebView = Constants.URL_FOR_PLUG
+
 
     private var valueCallback: ValueCallback<Array<Uri>?>? = null
     private var ready = false
@@ -69,6 +74,7 @@ class MainActivity : AppCompatActivity() {
 
                 setSupportMultipleWindows(false)
             }
+            showLoading()
 
             appWebView.setOnKeyListener { v: View, keyCode: Int, event: KeyEvent ->
                 (v as WebView).apply {
@@ -98,20 +104,19 @@ class MainActivity : AppCompatActivity() {
                         CookieManager.getInstance().setAcceptCookie(true)
                     }
 
-                    val urlHost = Uri.parse(Constants.URL_FOR_REDIRECT).host
+                    val urlHost = Uri.parse(urlForWebView).host
                     val urlStarted = Uri.parse(url!!).host
 
                     if (!urlHost.equals("file://") && urlHost != "" && urlStarted != "") {
                         if (!urlHost.equals(urlStarted)) {
                             if (!"cloudflare".contains(view?.title.toString())) {
                                 println("OK")
-                                view?.visibility = View.VISIBLE
+                                //view?.visibility = View.VISIBLE
+                                hideLoading()
                             }
                         } else {
-                            println("Canceledd")
+                            navigateToNewsActivity()
                         }
-                    }else{
-                        println("canled")
                     }
                 }
 
@@ -206,7 +211,7 @@ class MainActivity : AppCompatActivity() {
                                 .getAppsFlyerUID(applicationContext)
                         )
 
-                    init("SihipwKzzzxbpG3LoUhuPn", object : AppsFlyerConversionListener {
+                    init(Constants.APP_FLYER_KEY, object : AppsFlyerConversionListener {
                         override fun onConversionDataSuccess(p0: MutableMap<String, Any>?) {
                             runOnUiThread {
                                 val query = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -217,13 +222,15 @@ class MainActivity : AppCompatActivity() {
 
                                         pair.first.plus("=").plus(pair.second)
                                     }.joinToString("&")
-                                } else { "" }
+                                } else {
+                                    ""
+                                }
 
                                 if (isSimSupport(applicationContext) && !isAirplaneModeOn() && !ready) {
                                     ready = true
 
                                     println("Loading")
-                                    appWebView.loadUrl(Constants.URL_FOR_REDIRECT.plus("?$query"))
+                                    appWebView.loadUrl(urlForWebView.plus("?$query"))
                                 }
                             }
                         }
@@ -262,6 +269,28 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == 102) {
             _binding.appWebView.reload()
+        }
+    }
+
+    private fun navigateToNewsActivity() {
+        val intent = Intent(this, NewsActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+    private fun showLoading() {
+        _binding.apply {
+            loadingAnimation.animate()
+            logoImageView.visibility = View.VISIBLE
+            appWebView.visibility = View.GONE
+        }
+    }
+
+    private fun hideLoading() {
+        _binding.apply {
+            loadingAnimation.visibility = View.GONE
+            logoImageView.visibility = View.GONE
+            appWebView.visibility = View.VISIBLE
         }
     }
 }

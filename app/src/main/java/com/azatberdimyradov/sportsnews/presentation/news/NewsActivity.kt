@@ -5,8 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import com.azatberdimyradov.sportsnews.R
-import com.azatberdimyradov.sportsnews.databinding.ActivityNewsBinding
+import com.berdimyradov.sportsnews.R
+import com.berdimyradov.sportsnews.databinding.ActivityNewsBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

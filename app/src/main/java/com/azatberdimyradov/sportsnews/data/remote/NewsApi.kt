@@ -12,7 +12,7 @@ interface NewsApi {
         @Query("country")
         countryCode: String = "us",
         @Query("page")
-        pageNumber: Int = 1,
+        pageNumber: Int,
         @Query("category")
         category: String = "sports",
         @Query("apiKey")

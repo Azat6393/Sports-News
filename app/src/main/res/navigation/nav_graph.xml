@@ -18,7 +18,7 @@
         android:label="ArticleFragment" >
 
         <argument
-            android:name="article"
-            app:argType="com.azatberdimyradov.sportsnews.domain.model.Article" />
+            android:name="url"
+            app:argType="string" />
     </fragment>
 </navigation>

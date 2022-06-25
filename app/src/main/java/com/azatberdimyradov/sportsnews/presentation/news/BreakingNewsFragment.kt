@@ -2,18 +2,20 @@ package com.azatberdimyradov.sportsnews.presentation.news
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.azatberdimyradov.sportsnews.R
-import com.azatberdimyradov.sportsnews.databinding.FragmentBreakingNewsBinding
+import com.berdimyradov.sportsnews.R
+import com.azatberdimyradov.sportsnews.Resource
+import com.berdimyradov.sportsnews.databinding.FragmentBreakingNewsBinding
 import com.azatberdimyradov.sportsnews.presentation.news.adapters.NewsAdapter
-import com.azatberdimyradov.sportsnews.presentation.news.adapters.NewsLoadStateAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
@@ -29,23 +31,53 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
         binding = FragmentBreakingNewsBinding.bind(view)
         setUpRecyclerView()
 
-        newsAdapter.setOnItemClickListener {
-            val bundle = Bundle().apply {
-                putSerializable("article", it)
+        binding.apply {
+            leftButton.setOnClickListener {
+                viewModel.pageNumber--
+                viewModel.getNewsFromDatabase()
+                updateNavigateButton()
             }
-            findNavController().navigate(
-                R.id.action_breakingNewsFragment_to_articleFragment,
-                bundle
-            )
+            rightButton.setOnClickListener {
+                viewModel.pageNumber++
+                println(viewModel.pageNumber)
+                viewModel.getNewsFromDatabase()
+                updateNavigateButton()
+            }
+        }
+
+        newsAdapter.setOnItemClickListener {
+            val action = BreakingNewsFragmentDirections.actionBreakingNewsFragmentToArticleFragment(it.url)
+            findNavController().navigate(action)
         }
         observe()
     }
 
+    private fun updateNavigateButton() {
+        binding.apply {
+            leftButton.isVisible = viewModel.pageNumber > 1
+            rightButton.isVisible = true
+        }
+    }
+
     private fun observe() {
-        viewLifecycleOwner.lifecycleScope.launchWhenCreated {
-            viewModel.newsFlow.collect { event ->
-                event?.let {
-                    newsAdapter.submitData(it)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                viewModel.newsFlow.collect { event ->
+                    when(event){
+                        is Resource.Success -> {
+                            hideProgressBar()
+                            event.data?.let {
+                                newsAdapter.submitList(it.articles)
+                            }
+                        }
+                        is Resource.Empty -> {}
+                        is Resource.Error -> {
+                            hideProgressBar()
+                        }
+                        is Resource.Loading -> {
+                            showProgressBar()
+                        }
+                    }
                 }
             }
         }
@@ -54,37 +86,20 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
     private fun setUpRecyclerView() {
         newsAdapter = NewsAdapter()
         binding.rvBreakingNews.apply {
-            adapter = newsAdapter.withLoadStateFooter(
-                footer = NewsLoadStateAdapter { newsAdapter.retry() }
-            )
+            adapter = newsAdapter
             layoutManager = LinearLayoutManager(activity)
             setHasFixedSize(true)
-        }
-        newsAdapter.addLoadStateListener { loadState ->
-            if (loadState.refresh is LoadState.Loading) {
-                showProgressBar()
-            } else {
-                hideProgressBar()
-
-                //getting the error
-                val error = when {
-                    loadState.prepend is LoadState.Error -> loadState.prepend as LoadState.Error
-                    loadState.append is LoadState.Error -> loadState.append as LoadState.Error
-                    loadState.refresh is LoadState.Error -> loadState.refresh as LoadState.Error
-                    else -> null
-                }
-                error?.let {
-                    Toast.makeText(requireContext(), it.error.message, Toast.LENGTH_LONG).show()
-                }
-            }
         }
     }
 
     private fun hideProgressBar() {
         binding.paginationProgressBar.visibility = View.INVISIBLE
+        updateNavigateButton()
     }
 
     private fun showProgressBar() {
         binding.paginationProgressBar.visibility = View.VISIBLE
+        binding.leftButton.visibility = View.GONE
+        binding.rightButton.visibility = View.GONE
     }
 }

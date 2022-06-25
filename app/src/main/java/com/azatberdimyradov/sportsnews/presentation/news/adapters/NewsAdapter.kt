@@ -2,15 +2,14 @@ package com.azatberdimyradov.sportsnews.presentation.news.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.azatberdimyradov.sportsnews.databinding.ItemArticlePreviewBinding
+import com.berdimyradov.sportsnews.databinding.ItemArticlePreviewBinding
 import com.azatberdimyradov.sportsnews.domain.model.Article
 import com.bumptech.glide.Glide
 
-class NewsAdapter : PagingDataAdapter<Article, NewsAdapter.ArticleViewHolder>(DiffCallBack) {
+class NewsAdapter : ListAdapter<Article, NewsAdapter.ArticleViewHolder>(DiffCallBack) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder {
         val binding = ItemArticlePreviewBinding.inflate(LayoutInflater.from(parent.context),parent,false)
@@ -65,12 +64,10 @@ class NewsAdapter : PagingDataAdapter<Article, NewsAdapter.ArticleViewHolder>(Di
         }
     }
 
-    val differ = AsyncListDiffer(this, DiffCallBack)
 
     private var onItemClickListener: ((Article) -> Unit)? = null
 
     fun setOnItemClickListener(listener: (Article) -> Unit){
         onItemClickListener = listener
     }
-
 }
